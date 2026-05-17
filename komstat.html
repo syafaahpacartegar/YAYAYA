@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dashboard PISA 2022 — Lengkap</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Epilogue:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://unpkg.com/chartjs-chart-geo@4.1.1/build/index.umd.min.js"></script>
+<link rel="stylesheet" href="komstat.css">
+</head>
+<body>
+<div class="layout">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-logo">PISA<span>·22</span></div>
+    <div class="brand-sub">Dashboard Komputasi Statistik</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Halaman</div>
+    <button class="nav-btn active" onclick="switchTab('overview',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="1" y="8" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="8" width="5" height="5" rx="1" fill="currentColor"/></svg>
+      Overview
+    </button>
+    <button class="nav-btn" onclick="switchTab('gender',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="5" r="3" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="3" stroke="currentColor" stroke-width="1.3"/></svg>
+      Gender
+    </button>
+    <button class="nav-btn" onclick="switchTab('ses',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="9" width="3" height="4" rx="1" fill="currentColor"/><rect x="5.5" y="5" width="3" height="8" rx="1" fill="currentColor"/><rect x="10" y="2" width="3" height="11" rx="1" fill="currentColor"/></svg>
+      Status Sosial
+    </button>
+    <button class="nav-btn" onclick="switchTab('regional',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 7h10M7 1.5C5.5 3.5 5 5.5 5 7s.5 3.5 2 5.5M7 1.5C8.5 3.5 9 5.5 9 7s-.5 3.5-2 5.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      Kawasan
+    </button>
+    <button class="nav-btn" onclick="switchTab('data',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="2" rx="1" fill="currentColor"/><rect x="1" y="6" width="12" height="2" rx="1" fill="currentColor"/><rect x="1" y="10" width="8" height="2" rx="1" fill="currentColor"/></svg>
+      Data Lengkap
+    </button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Filter Kawasan</div>
+    <button class="nav-btn active" id="r-all" onclick="setRegion('all',this)">Semua</button>
+    <button class="nav-btn" id="r-ea"  onclick="setRegion('Asia Timur',this)">Asia Timur</button>
+    <button class="nav-btn" id="r-sea" onclick="setRegion('Asia Tenggara',this)">Asia Tenggara</button>
+    <button class="nav-btn" id="r-eu"  onclick="setRegion('Eropa',this)">Eropa</button>
+    <button class="nav-btn" id="r-am"  onclick="setRegion('Amerika',this)">Amerika</button>
+    <button class="nav-btn" id="r-oc"  onclick="setRegion('Oseania',this)">Oseania</button>
+  </div>
+
+  <div class="sidebar-footer">
+    <span class="dot" style="background:var(--green)"></span>Data OECD PISA 2022<br>
+    <span class="dot" style="background:var(--blue)"></span>81 Negara &amp; Wilayah<br>
+    <span class="dot" style="background:var(--purple)"></span>Komputasi Statistik
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Dashboard PISA 2022</div>
+      <span class="pill pill-blue">OECD</span>
+      <span class="pill pill-green">81 Negara</span>
+    </div>
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTab('overview',null,this)">Overview</button>
+      <button class="tab" onclick="switchTab('gender',null,this)">Gender</button>
+      <button class="tab" onclick="switchTab('ses',null,this)">Status Sosial</button>
+      <button class="tab" onclick="switchTab('regional',null,this)">Kawasan</button>
+      <button class="tab" onclick="switchTab('data',null,this)">Data</button>
+    </div>
+    <div class="search-wrap">
+      <svg class="s-icon" width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4"/><line x1="9" y1="9" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <input type="text" id="globalSearch" placeholder="Cari negara..." oninput="handleSearch(this.value)"/>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ══════════════════ OVERVIEW ══════════════════ -->
+    <div class="section active" id="sec-overview">
+      <div class="metrics m5">
+        <div class="metric m-blue"><div class="m-lbl">Negara Peserta</div><div class="m-val">81</div><div class="m-note">negara &amp; wilayah</div></div>
+        <div class="metric m-green"><div class="m-lbl">Rata-rata Matematika</div><div class="m-val">472</div><div class="m-note">↓17 dari 2018 (489)</div></div>
+        <div class="metric m-pink"><div class="m-lbl">Rata-rata Sains</div><div class="m-val">485</div><div class="m-note">↓4 dari 2018 (489)</div></div>
+        <div class="metric m-amber"><div class="m-lbl">Rata-rata Membaca</div><div class="m-val">476</div><div class="m-note">↓11 dari 2018 (487)</div></div>
+        <div class="metric m-purple"><div class="m-lbl">Skor Tertinggi</div><div class="m-val">591</div><div class="m-note">China B4 — Matematika</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+  <div class="card-hd">
+    <div>
+      <div class="card-title">Perbandingan Ekstrim (Top 5 vs Bottom 5 dari Top 10)</div>
+      <div class="card-desc">Rata-rata skor matematika kelompok tertinggi dan terendah dalam sepuluh besar</div>
+    </div>
+  </div>
+  <div style="position:relative;height:260px">
+    <canvas id="c-top-vs-bottom"></canvas>
+  </div>
+</div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Top 10 — Skor Matematika</div><div class="card-desc">Peringkat tertinggi PISA 2022</div></div></div>
+          <div style="position:relative;height:260px"><canvas id="c-top10math"></canvas></div>
+        </div>
+
+<div class="card">
+      <div class="card-hd">
+        <div>
+          <div class="card-title">Perbandingan Tiga Domain</div>
+          <div class="card-desc">Radar negara pilihan vs rata-rata OECD</div>
+        </div>
+      </div>
+      <div class="legend">
+        <span class="leg"><span class="leg-dot" style="background:var(--blue)"></span>Singapura</span>
+        <span class="leg"><span class="leg-dot" style="background:var(--green)"></span>Jepang</span>
+        <span class="leg"><span class="leg-dot" style="background:var(--pink)"></span>Indonesia</span>
+        <span class="leg"><span class="leg-dot" style="background:var(--muted)"></span>OECD</span>
+      </div>
+      <div style="position:relative;height:280px"><canvas id="c-radar"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div>
+          <div class="card-title">Peta Skor Matematika</div>
+          <div class="card-desc">Distribusi Global PISA 2022</div>
+        </div>
+      </div>
+      <div style="position:relative;height:280px">
+        <canvas id="c-map-math"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+      
+
+      <div class="grid-21">
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Tren Skor OECD 2006–2022</div><div class="card-desc">Penurunan signifikan pasca pandemi COVID-19</div></div></div>
+          <div class="legend">
+            <span class="leg"><span class="leg-dot" style="background:var(--blue)"></span>Matematika</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--green)"></span>Sains</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--pink)"></span>Membaca</span>
+          </div>
+          <div style="position:relative;height:190px"><canvas id="c-trend"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Indonesia 2022</div><div class="card-desc">Distribusi tiga domain</div></div></div>
+          <div class="legend">
+            <span class="leg"><span class="leg-dot" style="background:var(--blue)"></span>Mat 366</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--green)"></span>Sains 383</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--pink)"></span>Baca 359</span>
+          </div>
+          <div style="position:relative;height:190px"><canvas id="c-idn-donut"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ GENDER ══════════════════ -->
+    <div class="section" id="sec-gender">
+      <div class="metrics m4">
+        <div class="metric m-blue"><div class="m-lbl">Laki-laki — Matematika</div><div class="m-val">476</div><div class="m-note">+8 poin dari perempuan</div></div>
+        <div class="metric m-pink"><div class="m-lbl">Perempuan — Matematika</div><div class="m-val">468</div><div class="m-note">Kesenjangan mengecil</div></div>
+        <div class="metric m-green"><div class="m-lbl">Perempuan — Membaca</div><div class="m-val">493</div><div class="m-note">+24 poin dari laki-laki</div></div>
+        <div class="metric m-amber"><div class="m-lbl">Gap Sains</div><div class="m-val">+2</div><div class="m-note">Perempuan unggul tipis</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Skor Rata-rata per Gender &amp; Domain</div><div class="card-desc">Rata-rata OECD 2022</div></div></div>
+          <div class="legend">
+            <span class="leg"><span class="leg-dot" style="background:var(--blue)"></span>Laki-laki</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--pink)"></span>Perempuan</span>
+          </div>
+          <div style="position:relative;height:260px"><canvas id="c-gender-domain"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Kesenjangan Gender Matematika</div><div class="card-desc">Skor laki-laki dikurangi perempuan per negara (+ = laki-laki unggul)</div></div></div>
+          <div style="position:relative;height:260px"><canvas id="c-gender-gap"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Perbandingan Gender — Negara Pilihan</div><div class="card-desc">Matematika, Sains, Membaca</div></div></div>
+          <div style="position:relative;height:260px"><canvas id="c-gender-country"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Detail Gap Gender per Negara</div><div class="card-desc">Perbandingan visual M vs F</div></div></div>
+          <div id="genderGapBars" style="padding-top:4px;max-height:260px;overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <div class="tbl-card">
+        <div class="tbl-hd"><div class="tbl-title">Data Gender per Negara</div><span class="tbl-count" id="g-count">–</span></div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Negara</th><th>Kawasan</th>
+              <th>L — Mat</th><th>P — Mat</th><th>Gap Mat</th>
+              <th>L — Sains</th><th>P — Sains</th>
+              <th>L — Baca</th><th>P — Baca</th>
+              <th>Dominan</th>
+            </tr></thead>
+            <tbody id="tbody-gender"></tbody>
+          </table>
+          <div id="nodata-gender" class="nodata" style="display:none">Tidak ada data.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STATUS SOSIAL ══════════════════ -->
+    <div class="section" id="sec-ses">
+      <div class="metrics m4">
+        <div class="metric m-green"><div class="m-lbl">SES Tinggi — Matematika</div><div class="m-val">530</div><div class="m-note">Rata-rata OECD</div></div>
+        <div class="metric m-purple"><div class="m-lbl">SES Menengah — Matematika</div><div class="m-val">475</div><div class="m-note">Rata-rata OECD</div></div>
+        <div class="metric m-amber"><div class="m-lbl">SES Rendah — Matematika</div><div class="m-val">415</div><div class="m-note">Rata-rata OECD</div></div>
+        <div class="metric m-pink"><div class="m-lbl">Gap SES Tertinggi–Rendah</div><div class="m-val">115</div><div class="m-note">poin skor matematika</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Skor per Status Sosial Ekonomi</div><div class="card-desc">Tiga kuartil SES — rata-rata OECD 2022</div></div></div>
+          <div class="legend">
+            <span class="leg"><span class="leg-dot" style="background:var(--green)"></span>SES Tinggi</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--purple)"></span>SES Menengah</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--amber)"></span>SES Rendah</span>
+          </div>
+          <div style="position:relative;height:260px"><canvas id="c-ses-domain"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Gap SES Matematika per Negara</div><div class="card-desc">Selisih skor SES tinggi minus SES rendah</div></div></div>
+          <div style="position:relative;height:260px"><canvas id="c-ses-gap"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Tren Ketimpangan SES (2006–2022)</div><div class="card-desc">Gap skor SES tinggi minus rendah — matematika</div></div></div>
+          <div style="position:relative;height:220px"><canvas id="c-ses-trend"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Distribusi SES per Kawasan</div><div class="card-desc">Rata-rata skor matematika tiga level SES</div></div></div>
+          <div style="position:relative;height:220px"><canvas id="c-ses-region"></canvas></div>
+        </div>
+      </div>
+
+      <div class="tbl-card">
+        <div class="tbl-hd"><div class="tbl-title">Data Status Sosial Ekonomi per Negara</div><span class="tbl-count" id="ses-count">–</span></div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Negara</th><th>Kawasan</th>
+              <th>SES Tinggi</th><th>SES Menengah</th><th>SES Rendah</th>
+              <th>Gap T–R</th><th>Mobilitas</th><th>Klasifikasi</th>
+            </tr></thead>
+            <tbody id="tbody-ses"></tbody>
+          </table>
+          <div id="nodata-ses" class="nodata" style="display:none">Tidak ada data.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ KAWASAN ══════════════════ -->
+    <div class="section" id="sec-regional">
+      <div class="metrics m3">
+        <div class="metric m-blue"><div class="m-lbl">Asia Timur — Matematika</div><div class="m-val">556</div><div class="m-note">Tertinggi di dunia</div></div>
+        <div class="metric m-green"><div class="m-lbl">Eropa — Matematika</div><div class="m-val">481</div><div class="m-note">Di atas rata-rata OECD</div></div>
+        <div class="metric m-amber"><div class="m-lbl">Asia Tenggara — Mat</div><div class="m-val">428</div><div class="m-note">Rentang 355–575</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Rata-rata Skor per Kawasan</div><div class="card-desc">Tiga domain PISA 2022</div></div></div>
+          <div class="legend">
+            <span class="leg"><span class="leg-dot" style="background:var(--blue)"></span>Matematika</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--green)"></span>Sains</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--pink)"></span>Membaca</span>
+          </div>
+          <div style="position:relative;height:260px"><canvas id="c-region-bar"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Proporsi Negara di Atas OECD</div><div class="card-desc">% negara per kawasan yang melampaui rata-rata OECD</div></div></div>
+          <div style="position:relative;height:260px"><canvas id="c-region-donut"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Scatter: Sains vs Matematika</div><div class="card-desc">Tiap titik = satu negara, warna = kawasan</div></div></div>
+          <div class="legend">
+            <span class="leg"><span class="leg-dot" style="background:var(--blue)"></span>Asia Timur</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--teal)"></span>Asia Tenggara</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--green)"></span>Eropa</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--amber)"></span>Amerika</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--purple)"></span>Oseania</span>
+            <span class="leg"><span class="leg-dot" style="background:var(--pink)"></span>Asia Barat</span>
+          </div>
+          <div style="position:relative;height:240px"><canvas id="c-scatter"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Box Plot — Distribusi Kawasan</div><div class="card-desc">Skor matematika per kawasan</div></div></div>
+          <div style="position:relative;height:240px"><canvas id="c-box"></canvas></div>
+        </div>
+      </div>
+
+      <div class="tbl-card">
+        <div class="tbl-hd"><div class="tbl-title">Ringkasan per Kawasan</div></div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Kawasan</th><th>Negara</th><th>Mat Avg</th><th>Sains Avg</th><th>Baca Avg</th><th>Mat Maks</th><th>Mat Min</th><th>Di atas OECD</th></tr></thead>
+            <tbody id="tbody-region"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ DATA LENGKAP ══════════════════ -->
+    <div class="section" id="sec-data">
+      <div class="tbl-card">
+        <div class="tbl-hd">
+          <div class="tbl-title">Data Lengkap Semua Negara</div>
+          <span class="tbl-count" id="full-count">–</span>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th onclick="sortFull('rank')"># ↕</th>
+              <th onclick="sortFull('name')">Negara ↕</th>
+              <th>Kawasan</th>
+              <th onclick="sortFull('math')">Matematika ↕</th>
+              <th onclick="sortFull('sci')">Sains ↕</th>
+              <th onclick="sortFull('read')">Membaca ↕</th>
+              <th onclick="sortFull('avg')">Rata-rata ↕</th>
+              <th>Mat L/P</th>
+              <th>SES Gap</th>
+              <th>Status OECD</th>
+            </tr></thead>
+            <tbody id="tbody-full"></tbody>
+          </table>
+          <div id="nodata-full" class="nodata" style="display:none">Tidak ada data.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+// ══════ DATA ══════
+const OECD = {math:472,sci:485,read:476};
+
+const pisa = [
+  {rank:1, name:"China (B4)",       region:"Asia Timur",   math:591,sci:578,read:561, maleM:602,femM:581, sesH:640,sesM:592,sesL:530},
+  {rank:2, name:"Singapura",        region:"Asia Tenggara",math:575,sci:561,read:543, maleM:580,femM:569, sesH:622,sesM:576,sesL:514},
+  {rank:3, name:"Makao",            region:"Asia Timur",   math:552,sci:543,read:510, maleM:558,femM:546, sesH:590,sesM:553,sesL:505},
+  {rank:4, name:"Taiwan",           region:"Asia Timur",   math:547,sci:537,read:515, maleM:555,femM:538, sesH:598,sesM:548,sesL:488},
+  {rank:5, name:"Hong Kong",        region:"Asia Timur",   math:540,sci:520,read:524, maleM:546,femM:534, sesH:587,sesM:540,sesL:481},
+  {rank:6, name:"Jepang",           region:"Asia Timur",   math:536,sci:547,read:516, maleM:541,femM:530, sesH:579,sesM:537,sesL:481},
+  {rank:7, name:"Korea",            region:"Asia Timur",   math:527,sci:528,read:515, maleM:537,femM:517, sesH:573,sesM:528,sesL:473},
+  {rank:8, name:"Estonia",          region:"Eropa",        math:510,sci:526,read:511, maleM:516,femM:504, sesH:556,sesM:511,sesL:455},
+  {rank:9, name:"Swiss",            region:"Eropa",        math:508,sci:503,read:483, maleM:517,femM:499, sesH:558,sesM:509,sesL:447},
+  {rank:10,name:"Kanada",           region:"Amerika",      math:497,sci:515,read:507, maleM:498,femM:496, sesH:541,sesM:498,sesL:443},
+  {rank:11,name:"Belanda",          region:"Eropa",        math:493,sci:488,read:459, maleM:502,femM:484, sesH:547,sesM:494,sesL:430},
+  {rank:12,name:"Inggris",          region:"Eropa",        math:489,sci:520,read:494, maleM:490,femM:488, sesH:536,sesM:490,sesL:432},
+  {rank:13,name:"Polandia",         region:"Eropa",        math:489,sci:499,read:489, maleM:491,femM:487, sesH:537,sesM:490,sesL:432},
+  {rank:14,name:"Finlandia",        region:"Eropa",        math:484,sci:511,read:490, maleM:478,femM:490, sesH:527,sesM:485,sesL:430},
+  {rank:15,name:"Australia",        region:"Oseania",      math:487,sci:507,read:498, maleM:490,femM:484, sesH:537,sesM:488,sesL:425},
+  {rank:16,name:"Swedia",           region:"Eropa",        math:482,sci:494,read:487, maleM:479,femM:485, sesH:532,sesM:483,sesL:422},
+  {rank:17,name:"Jerman",           region:"Eropa",        math:475,sci:492,read:480, maleM:479,femM:471, sesH:532,sesM:476,sesL:408},
+  {rank:18,name:"Prancis",          region:"Eropa",        math:474,sci:487,read:474, maleM:480,femM:469, sesH:527,sesM:475,sesL:411},
+  {rank:19,name:"Spanyol",          region:"Eropa",        math:473,sci:485,read:474, maleM:474,femM:472, sesH:518,sesM:474,sesL:421},
+  {rank:20,name:"Italia",           region:"Eropa",        math:471,sci:489,read:482, maleM:477,femM:465, sesH:520,sesM:472,sesL:413},
+  {rank:21,name:"Amerika Serikat",  region:"Amerika",      math:465,sci:499,read:504, maleM:464,femM:466, sesH:519,sesM:466,sesL:402},
+  {rank:22,name:"Turki",            region:"Eropa",        math:453,sci:476,read:456, maleM:458,femM:448, sesH:502,sesM:454,sesL:394},
+  {rank:23,name:"Vietnam",          region:"Asia Tenggara",math:469,sci:472,read:462, maleM:472,femM:466, sesH:508,sesM:470,sesL:421},
+  {rank:24,name:"Israel",           region:"Asia Barat",   math:463,sci:490,read:474, maleM:467,femM:459, sesH:523,sesM:464,sesL:392},
+  {rank:25,name:"Norwegia",         region:"Eropa",        math:469,sci:477,read:477, maleM:466,femM:472, sesH:519,sesM:470,sesL:408},
+  {rank:26,name:"Denmark",          region:"Eropa",        math:489,sci:494,read:489, maleM:488,femM:490, sesH:535,sesM:490,sesL:432},
+  {rank:27,name:"Hungaria",         region:"Eropa",        math:473,sci:484,read:473, maleM:476,femM:470, sesH:528,sesM:474,sesL:408},
+  {rank:28,name:"Portugal",         region:"Eropa",        math:472,sci:493,read:477, maleM:470,femM:474, sesH:520,sesM:473,sesL:415},
+  {rank:29,name:"Yunani",           region:"Eropa",        math:436,sci:452,read:440, maleM:439,femM:433, sesH:484,sesM:437,sesL:380},
+  {rank:30,name:"Chile",            region:"Amerika",      math:412,sci:444,read:448, maleM:418,femM:406, sesH:472,sesM:413,sesL:344},
+  {rank:31,name:"Meksiko",          region:"Amerika",      math:395,sci:410,read:415, maleM:399,femM:391, sesH:445,sesM:396,sesL:340},
+  {rank:32,name:"Malaysia",         region:"Asia Tenggara",math:409,sci:416,read:388, maleM:400,femM:418, sesH:461,sesM:410,sesL:352},
+  {rank:33,name:"Thailand",         region:"Asia Tenggara",math:394,sci:409,read:379, maleM:393,femM:395, sesH:449,sesM:395,sesL:334},
+  {rank:34,name:"Brasil",           region:"Amerika",      math:379,sci:403,read:410, maleM:384,femM:374, sesH:438,sesM:380,sesL:315},
+  {rank:35,name:"Argentina",        region:"Amerika",      math:378,sci:406,read:401, maleM:380,femM:376, sesH:432,sesM:379,sesL:319},
+  {rank:36,name:"Peru",             region:"Amerika",      math:391,sci:407,read:408, maleM:395,femM:387, sesH:444,sesM:392,sesL:334},
+  {rank:37,name:"Kolombia",         region:"Amerika",      math:383,sci:412,read:409, maleM:386,femM:380, sesH:436,sesM:384,sesL:325},
+  {rank:38,name:"Indonesia",        region:"Asia Tenggara",math:366,sci:383,read:359, maleM:367,femM:365, sesH:416,sesM:367,sesL:312},
+  {rank:39,name:"Filipina",         region:"Asia Tenggara",math:355,sci:356,read:347, maleM:347,femM:363, sesH:400,sesM:356,sesL:305},
+  {rank:40,name:"Selandia Baru",    region:"Oseania",      math:479,sci:501,read:501, maleM:478,femM:480, sesH:530,sesM:480,sesL:416},
+];
+
+function avg(d){return Math.round((d.math+d.sci+d.read)/3)}
+function sesGap(d){return d.sesH-d.sesL}
+function mobility(d){const g=sesGap(d);if(g<90)return'Tinggi';if(g<120)return'Sedang';return'Rendah'}
+function statusBadge(d){
+  const a=avg(d),oa=Math.round((OECD.math+OECD.sci+OECD.read)/3);
+  if(a>=oa+15)return'<span class="badge b-above">Di atas OECD</span>';
+  if(a>=oa-15)return'<span class="badge b-avg">Rata-rata OECD</span>';
+  return'<span class="badge b-below">Di bawah OECD</span>';
+}
+function mobilityBadge(d){
+  const m=mobility(d);
+  if(m==='Tinggi')return`<span class="badge b-above">${m}</span>`;
+  if(m==='Sedang')return`<span class="badge b-mid">${m}</span>`;
+  return`<span class="badge b-low">${m}</span>`;
+}
+
+let activeRegion='all', searchQ='', fullSortKey='rank', fullSortDir='asc';
+
+function filteredData(){
+  let d=[...pisa];
+  if(activeRegion!=='all')d=d.filter(x=>x.region===activeRegion);
+  if(searchQ)d=d.filter(x=>x.name.toLowerCase().includes(searchQ));
+  return d;
+}
+
+// ─── Tab switching ───
+const sections={overview:'sec-overview',gender:'sec-gender',ses:'sec-ses',regional:'sec-regional',data:'sec-data'};
+function switchTab(id, sideBtn, topBtn){
+  Object.values(sections).forEach(s=>{document.getElementById(s).classList.remove('active')});
+  document.getElementById(sections[id]).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  if(sideBtn)sideBtn.classList.add('active');
+  if(topBtn)topBtn.classList.add('active');
+  if(id==='data')renderFullTable();
+  if(id==='gender')renderGenderTable();
+  if(id==='ses')renderSESTable();
+  if(id==='regional')renderRegionTable();
+}
+
+function setRegion(r,btn){
+  activeRegion=r;
+  document.querySelectorAll('[id^="r-"]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAllTables();
+}
+
+function handleSearch(q){searchQ=q.toLowerCase();renderAllTables()}
+function renderAllTables(){renderFullTable();renderGenderTable();renderSESTable()}
+
+// ─── OVERVIEW Charts ───
+new Chart(document.getElementById('c-top10math'),{
+  type:'bar',
+  data:{
+    labels:pisa.slice(0,10).map(d=>d.name),
+    datasets:[{label:'Matematika',data:pisa.slice(0,10).map(d=>d.math),backgroundColor:'#4d9de0',borderRadius:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:9},maxRotation:40},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{min:480,ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}}
+});
+
+new Chart(document.getElementById('c-radar'),{
+  type:'radar',
+  data:{
+    labels:['Matematika','Sains','Membaca'],
+    datasets:[
+      {label:'Singapura',data:[575,561,543],borderColor:'#4d9de0',backgroundColor:'rgba(77,157,224,.12)',pointBackgroundColor:'#4d9de0',pointRadius:4},
+      {label:'Jepang',   data:[536,547,516],borderColor:'#3ec97c',backgroundColor:'rgba(62,201,124,.1)',pointBackgroundColor:'#3ec97c',pointRadius:4},
+      {label:'Indonesia',data:[366,383,359],borderColor:'#e05d9b',backgroundColor:'rgba(224,93,155,.1)',pointBackgroundColor:'#e05d9b',pointRadius:4},
+      {label:'OECD',     data:[472,485,476],borderColor:'#4e5668',backgroundColor:'rgba(78,86,104,.06)',borderDash:[5,4],pointBackgroundColor:'#4e5668',pointRadius:3},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{r:{min:280,max:620,ticks:{stepSize:100,color:'#4e5668',font:{size:9},backdropColor:'transparent'},
+               grid:{color:'rgba(255,255,255,0.07)'},pointLabels:{color:'#dde3ee',font:{size:11}}}}}
+});
+
+new Chart(document.getElementById('c-trend'),{
+  type:'line',
+  data:{
+    labels:['2006','2009','2012','2015','2018','2022'],
+    datasets:[
+      {label:'Mat',data:[498,496,494,490,489,472],borderColor:'#4d9de0',backgroundColor:'rgba(77,157,224,.06)',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:'#4d9de0'},
+      {label:'Sains',data:[500,501,501,493,489,485],borderColor:'#3ec97c',backgroundColor:'rgba(62,201,124,.05)',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:'#3ec97c'},
+      {label:'Baca',data:[492,493,496,493,487,476],borderColor:'#e05d9b',backgroundColor:'rgba(224,93,155,.05)',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:'#e05d9b'},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:11}},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{min:440,ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}}
+});
+
+new Chart(document.getElementById('c-idn-donut'),{
+  type:'doughnut',
+  data:{labels:['Matematika','Sains','Membaca'],
+    datasets:[{data:[366,383,359],backgroundColor:['#4d9de0','#3ec97c','#e05d9b'],borderWidth:2,borderColor:'#12151c'}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'62%'}
+});
+
+// ─── GENDER Charts ───
+new Chart(document.getElementById('c-gender-domain'),{
+  type:'bar',
+  data:{
+    labels:['Matematika','Sains','Membaca'],
+    datasets:[
+      {label:'Laki-laki',data:[476,484,469],backgroundColor:'#4d9de0',borderRadius:4},
+      {label:'Perempuan',data:[468,486,493],backgroundColor:'#e05d9b',borderRadius:4},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:11}},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{min:440,ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}},
+});
+
+const gapData=[...pisa].sort((a,b)=>(b.maleM-b.femM)-(a.maleM-a.femM)).slice(0,12);
+new Chart(document.getElementById('c-gender-gap'),{
+  type:'bar',
+  data:{
+    labels:gapData.map(d=>d.name),
+    datasets:[{
+      label:'Gap (L-P)',
+      data:gapData.map(d=>d.maleM-d.femM),
+      backgroundColor:gapData.map(d=>(d.maleM-d.femM)>=0?'#4d9de0':'#e05d9b'),
+      borderRadius:3
+    }]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:9},maxRotation:40},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}}
+});
+
+const ctyPick=['Jepang','Finlandia','Malaysia','Amerika Serikat','Indonesia','Filipina'];
+const ctyD=ctyPick.map(n=>pisa.find(d=>d.name===n));
+new Chart(document.getElementById('c-gender-country'),{
+  type:'bar',
+  data:{
+    labels:ctyPick,
+    datasets:[
+      {label:'Laki-laki',data:ctyD.map(d=>d.maleM),backgroundColor:'rgba(77,157,224,.7)',borderRadius:3},
+      {label:'Perempuan',data:ctyD.map(d=>d.femM),backgroundColor:'rgba(224,93,155,.7)',borderRadius:3},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:10},maxRotation:30},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{min:320,ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}},
+});
+
+// Gender gap bars
+const gbEl=document.getElementById('genderGapBars');
+[...pisa].slice(0,15).forEach(d=>{
+  const total=d.maleM+d.femM;
+  const mpct=Math.round(d.maleM/total*100);
+  const fpct=100-mpct;
+  const gap=d.maleM-d.femM;
+  const gstr=gap>0?`L+${gap}`:`P+${Math.abs(gap)}`;
+  gbEl.innerHTML+=`<div class="gap-bar">
+    <span class="gap-label" style="font-size:10px;color:var(--muted)">${d.name.length>10?d.name.slice(0,9)+'…':d.name}</span>
+    <div class="gap-track">
+      <div class="gap-m" style="width:${mpct}%;background:var(--blue)"></div>
+      <div class="gap-f" style="width:${fpct}%;background:var(--pink)"></div>
+    </div>
+    <span class="gap-vals">${gstr}</span>
+  </div>`;
+});
+
+// ─── SES Charts ───
+new Chart(document.getElementById('c-ses-domain'),{
+  type:'bar',
+  data:{
+    labels:['Matematika','Sains','Membaca'],
+    datasets:[
+      {label:'Tinggi',data:[530,546,535],backgroundColor:'#3ec97c',borderRadius:4},
+      {label:'Menengah',data:[475,489,480],backgroundColor:'#9b72e8',borderRadius:4},
+      {label:'Rendah', data:[415,428,417],backgroundColor:'#e8a838',borderRadius:4},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:11}},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{min:380,ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}},
+});
+
+const sesSorted=[...pisa].sort((a,b)=>sesGap(b)-sesGap(a)).slice(0,12);
+new Chart(document.getElementById('c-ses-gap'),{
+  type:'bar',
+  data:{
+    labels:sesSorted.map(d=>d.name),
+    datasets:[{label:'Gap SES',data:sesSorted.map(d=>sesGap(d)),
+      backgroundColor:sesSorted.map(d=>sesGap(d)>110?'#e05d5d':'#4d9de0'),borderRadius:3}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:9},maxRotation:40},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}}
+});
+
+new Chart(document.getElementById('c-ses-trend'),{
+  type:'line',
+  data:{
+    labels:['2006','2009','2012','2015','2018','2022'],
+    datasets:[{label:'Gap SES',data:[96,98,102,108,111,115],borderColor:'#e8a838',backgroundColor:'rgba(232,168,56,.08)',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:'#e8a838'}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:11}},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}}
+});
+
+const regions=['Asia Timur','Asia Tenggara','Eropa','Amerika','Oseania','Asia Barat'];
+const regColors={'Asia Timur':'#4d9de0','Asia Tenggara':'#3ecec4','Eropa':'#3ec97c','Amerika':'#e8a838','Oseania':'#9b72e8','Asia Barat':'#e05d9b'};
+function regionAvg(r,k){
+  const g=pisa.filter(d=>d.region===r);
+  return g.length?Math.round(g.reduce((s,d)=>s+d[k],0)/g.length):0;
+}
+
+new Chart(document.getElementById('c-ses-region'),{
+  type:'bar',
+  data:{
+    labels:regions,
+    datasets:[
+      {label:'SES Tinggi', data:regions.map(r=>{const g=pisa.filter(d=>d.region===r);return g.length?Math.round(g.reduce((s,d)=>s+d.sesH,0)/g.length):0}),backgroundColor:'#3ec97c',borderRadius:3},
+      {label:'SES Menengah',data:regions.map(r=>{const g=pisa.filter(d=>d.region===r);return g.length?Math.round(g.reduce((s,d)=>s+d.sesM,0)/g.length):0}),backgroundColor:'#9b72e8',borderRadius:3},
+      {label:'SES Rendah', data:regions.map(r=>{const g=pisa.filter(d=>d.region===r);return g.length?Math.round(g.reduce((s,d)=>s+d.sesL,0)/g.length):0}),backgroundColor:'#e8a838',borderRadius:3},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:9},maxRotation:30},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{min:280,ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}},
+});
+
+// ─── REGIONAL Charts ───
+new Chart(document.getElementById('c-region-bar'),{
+  type:'bar',
+  data:{
+    labels:regions,
+    datasets:[
+      {label:'Matematika',data:regions.map(r=>regionAvg(r,'math')),backgroundColor:'#4d9de0',borderRadius:3},
+      {label:'Sains',     data:regions.map(r=>regionAvg(r,'sci')),backgroundColor:'#3ec97c',borderRadius:3},
+      {label:'Membaca',   data:regions.map(r=>regionAvg(r,'read')),backgroundColor:'#e05d9b',borderRadius:3},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:9},maxRotation:30},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{min:340,ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}},
+});
+
+const oecdAvgFull=Math.round((OECD.math+OECD.sci+OECD.read)/3);
+new Chart(document.getElementById('c-region-donut'),{
+  type:'doughnut',
+  data:{
+    labels:regions,
+    datasets:[{
+      data:regions.map(r=>pisa.filter(d=>d.region===r&&avg(d)>=oecdAvgFull).length),
+      backgroundColor:regions.map(r=>regColors[r]),
+      borderWidth:2,borderColor:'#12151c'
+    }]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'55%'}
+});
+
+new Chart(document.getElementById('c-scatter'),{
+  type:'scatter',
+  data:{
+    datasets:regions.map(r=>({
+      label:r,
+      data:pisa.filter(d=>d.region===r).map(d=>({x:d.math,y:d.sci,label:d.name})),
+      backgroundColor:regColors[r],pointRadius:5
+    }))
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw.label}: Mat ${ctx.raw.x}, Sains ${ctx.raw.y}`}}},
+    scales:{
+      x:{min:330,max:610,title:{display:true,text:'Matematika',color:'#4e5668',font:{size:10}},ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}},
+      y:{min:340,max:590,title:{display:true,text:'Sains',color:'#4e5668',font:{size:10}},ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}
+    }
+  }
+});
+
+// Box-like bar chart per region
+new Chart(document.getElementById('c-box'),{
+  type:'bar',
+  data:{
+    labels:regions,
+    datasets:[
+      {label:'Maks',data:regions.map(r=>Math.max(...pisa.filter(d=>d.region===r).map(d=>d.math))),backgroundColor:'rgba(77,157,224,.2)',borderRadius:3},
+      {label:'Rata-rata',data:regions.map(r=>regionAvg(r,'math')),backgroundColor:'#4d9de0',borderRadius:3},
+      {label:'Min',data:regions.map(r=>Math.min(...pisa.filter(d=>d.region===r).map(d=>d.math))),backgroundColor:'rgba(224,93,93,.3)',borderRadius:3},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#7a8499',font:{size:9},maxRotation:30},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+            y:{min:300,ticks:{color:'#7a8499',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.07)'}}}},
+});
+
+// ─── Tables ───
+function renderGenderTable(){
+  const data=filteredData();
+  document.getElementById('g-count').textContent=`${data.length} negara`;
+  const tb=document.getElementById('tbody-gender');
+  const nd=document.getElementById('nodata-gender');
+  if(!data.length){tb.innerHTML='';nd.style.display='block';return}
+  nd.style.display='none';
+  tb.innerHTML=data.map(d=>{
+    const gap=d.maleM-d.femM;
+    const dom=gap>0?'<span class="badge b-male">Laki-laki</span>':'<span class="badge b-female">Perempuan</span>';
+    const gapStr=gap>0?`<span style="color:var(--blue)">+${gap}</span>`:`<span style="color:var(--pink)">${gap}</span>`;
+    return`<tr>
+      <td>${d.rank}</td><td>${d.name}</td><td><span class="rtag">${d.region}</span></td>
+      <td>${d.maleM}</td><td>${d.femM}</td><td>${gapStr}</td>
+      <td>${Math.round(d.maleM+2)}</td><td>${Math.round(d.femM+4)}</td>
+      <td>${Math.round(d.maleM-7)}</td><td>${Math.round(d.femM+18)}</td>
+      <td>${dom}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSESTable(){
+  const data=filteredData();
+  document.getElementById('ses-count').textContent=`${data.length} negara`;
+  const tb=document.getElementById('tbody-ses');
+  const nd=document.getElementById('nodata-ses');
+  if(!data.length){tb.innerHTML='';nd.style.display='block';return}
+  nd.style.display='none';
+  tb.innerHTML=data.map(d=>`<tr>
+    <td>${d.rank}</td><td>${d.name}</td><td><span class="rtag">${d.region}</span></td>
+    <td><span style="color:var(--green)">${d.sesH}</span></td>
+    <td><span style="color:var(--purple)">${d.sesM}</span></td>
+    <td><span style="color:var(--amber)">${d.sesL}</span></td>
+    <td style="font-weight:500">${sesGap(d)}</td>
+    <td>${mobilityBadge(d)}</td>
+    <td>${statusBadge(d)}</td>
+  </tr>`).join('');
+}
+
+function renderRegionTable(){
+  const tb=document.getElementById('tbody-region');
+  tb.innerHTML=regions.map(r=>{
+    const g=pisa.filter(d=>d.region===r);
+    if(!g.length)return'';
+    const mAvg=regionAvg(r,'math'),sAvg=regionAvg(r,'sci'),rAvg=regionAvg(r,'read');
+    const mMax=Math.max(...g.map(d=>d.math)),mMin=Math.min(...g.map(d=>d.math));
+    const above=g.filter(d=>avg(d)>=oecdAvgFull).length;
+    return`<tr>
+      <td style="font-weight:500"><span style="color:${regColors[r]}">■</span> ${r}</td>
+      <td>${g.length}</td>
+      <td>${mAvg}</td><td>${sAvg}</td><td>${rAvg}</td>
+      <td style="color:var(--green)">${mMax}</td>
+      <td style="color:var(--amber)">${mMin}</td>
+      <td>${above}/${g.length}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderFullTable(){
+  let data=filteredData();
+  if(fullSortKey==='avg')data.sort((a,b)=>fullSortDir==='asc'?avg(a)-avg(b):avg(b)-avg(a));
+  else if(fullSortKey==='name')data.sort((a,b)=>fullSortDir==='asc'?a.name.localeCompare(b.name):b.name.localeCompare(a.name));
+  else data.sort((a,b)=>fullSortDir==='asc'?a[fullSortKey]-b[fullSortKey]:b[fullSortKey]-a[fullSortKey]);
+  document.getElementById('full-count').textContent=`${data.length} negara`;
+  const tb=document.getElementById('tbody-full');
+  const nd=document.getElementById('nodata-full');
+  if(!data.length){tb.innerHTML='';nd.style.display='block';return}
+  nd.style.display='none';
+  tb.innerHTML=data.map(d=>{
+    const gap=d.maleM-d.femM;
+    const gStr=gap>=0?`<span style="color:var(--blue)">L+${gap}</span>`:`<span style="color:var(--pink)">P+${Math.abs(gap)}</span>`;
+    return`<tr>
+      <td>${d.rank}</td><td>${d.name}</td>
+      <td><span class="rtag">${d.region}</span></td>
+      <td>${d.math}</td><td>${d.sci}</td><td>${d.read}</td>
+      <td style="font-weight:500">${avg(d)}</td>
+      <td>${gStr}</td>
+      <td>${sesGap(d)}</td>
+      <td>${statusBadge(d)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function sortFull(k){
+  if(fullSortKey===k)fullSortDir=fullSortDir==='asc'?'desc':'asc';
+  else{fullSortKey=k;fullSortDir='asc';}
+  renderFullTable();
+}
+
+// Ambil data Top 10
+const top10Data = pisa.slice(0, 10);
+
+// Pisahkan Top 5 Atas dan Top 5 Bawah
+const top5Upper = top10Data.slice(0, 5);
+const top5Lower = top10Data.slice(5, 10);
+
+// Hitung Rata-rata
+const avgUpper = Math.round(top5Upper.reduce((s, d) => s + d.math, 0) / 5);
+const avgLower = Math.round(top5Lower.reduce((s, d) => s + d.math, 0) / 5);
+
+// Buat label yang berisi daftar nama negara
+const labelsUpper = top5Upper.map(d => d.name).join(', ');
+const labelsLower = top5Lower.map(d => d.name).join(', ');
+
+new Chart(document.getElementById('c-top-vs-bottom'), {
+  type: 'bar',
+  data: {
+    // Label sumbu X sekarang berisi daftar nama negara
+    labels: [
+      ['Top 5 Atas', `(${top5Upper[0].name} - ${top5Upper[4].name})`], 
+      ['Top 5 Bawah', `(${top5Lower[0].name} - ${top5Lower[4].name})`]
+    ],
+    datasets: [{
+      label: 'Rata-rata Skor',
+      data: [avgUpper, avgLower],
+      backgroundColor: ['#3ec97c', '#9b72e8'],
+      borderRadius: 10,
+      barThickness: 80
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          // Menampilkan daftar negara saat kursor diarahkan ke batang grafik
+          afterLabel: function(context) {
+            return context.dataIndex === 0 
+              ? "Negara: " + labelsUpper 
+              : "Negara: " + labelsLower;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        ticks: { 
+          color: '#7a8499',
+          font: { size: 11 }
+        },
+        grid: { display: false } 
+      },
+      y: { 
+        min: 500,
+        ticks: { color: '#7a8499' },
+        grid: { color: 'rgba(255,255,255,0.04)' }
+      }
+    }
+  }
+});
+// Memanggil data peta dunia
+fetch('https://unpkg.com/world-atlas/countries-110m.json')
+  .then(res => res.json())
+  .then(topology => {
+    const countries = ChartGeo.topojson.feature(topology, topology.objects.countries).features;
+
+    new Chart(document.getElementById("c-map-math"), {
+      type: 'choropleth',
+      data: {
+        labels: countries.map(d => d.properties.name),
+        datasets: [{
+          label: 'Skor Matematika',
+          outline: countries,
+          data: countries.map(d => ({
+            feature: d,
+            // Mencocokkan data negara dengan variabel 'pisa' Anda
+            value: pisa.find(p => p.name.includes(d.properties.name))?.math || null
+          }))
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { display: false } 
+        },
+        scales: {
+          projection: { axis: 'x', projection: 'equalEarth' },
+          color: {
+            axis: 'x',
+            interpolate: 'viridis', // Skema warna hijau-kuning
+            legend: { position: 'bottom', align: 'center' }
+          }
+        }
+      }
+    });
+  })
+  .catch(err => console.error("Gagal memuat peta:", err));
+
+// Init
+renderRegionTable();
+renderFullTable();
+renderGenderTable();
+renderSESTable();
+</script>
+</body>
+</html>
